@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tosun Macro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#0c1510;color:#f0f6ef;font-family:Arial,sans-serif}
+main{max-width:600px;margin:auto}
+header,.card{background:#17251c;border:1px solid #314638;border-radius:16px;padding:16px;margin-bottom:14px}
+h1{color:#8ce0a0}
+h2{font-size:18px}
+label{display:block;margin:12px 0 6px;color:#a9b9aa}
+select,input{width:100%;padding:13px;border-radius:10px;background:#0e1912;color:white;border:1px solid #45604b;font-size:16px}
+button{padding:12px;border:0;border-radius:10px;font-weight:bold;background:#8ce0a0;color:#102216}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+#clock{text-align:center;font-size:40px;color:#8ce0a0;margin:15px}
+.plan{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.cell{aspect-ratio:1;background:#203c2a;border-radius:9px;display:grid;place-items:center;font-size:22px}
+.selected{background:#526b35;border:2px solid #f4d27a}
+.note{color:#d6dfd5;font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>🐂 TOSUN MACRO</h1>
+<p>Bee Swarm Companion • Android</p>
+</header>
+
+<h2>🌻 Alan seçimi</h2>
+<section class="card">
+<label>Çalışacağın alan</label>
+<select id="field">
+<option>Sunflower Field</option>
+<option>Dandelion Field</option>
+<option>Mushroom Field</option>
+<option>Clover Field</option>
+<option>Blue Flower Field</option>
+<option selected>Pine Tree Forest</option>
+</select>
+</section>
+
+<h2>⛲ Sprinkler seçimi</h2>
+<section class="card">
+<label>Sprinkler türü</label>
+<select id="sprinkler">
+<option value="Basic">Basic Sprinkler</option>
+<option value="Silver">Silver Soakers</option>
+<option value="Golden" selected>Golden Gutter</option>
+<option value="Diamond">Diamond Drenchers</option>
+<option value="Supreme">Supreme Saturator</option>
+</select>
+<p>Yerleşim adedi: <b id="count">3</b></p>
+</section>
+
+<h2>🗺️ Yerleşim planı</h2>
+<section class="card">
+<p id="title">Pine Tree Forest</p>
+<div class="plan" id="plan"></div>
+<p class="note" id="guide"></p>
+<p class="note">Bu çizim örnek yerleşim planıdır. Oyuna otomatik sprinkler koymaz.</p>
+</section>
+
+<h2>⏱️ Zamanlayıcı</h2>
+<section class="card">
+<div class="row">
+<div><label>Dakika</label><input id="minutes" type="number" value="30" min="1"></div>
+<div><label>Saniye</label><input id="seconds" type="number" value="0" min="0" max="59"></div>
+</div>
+<div id="clock">30:00</div>
+<div class="row">
+<button onclick="start()">Başlat</button>
+<button onclick="pause()">Duraklat</button>
+<button onclick="reset()">Sıfırla</button>
+</div>
+</section>
+</main>
+
+<script>
+const counts={
+Basic:1,
+Silver:2,
+Golden:3,
+Diamond:4,
+Supreme:1
+};
+
+const names={
+Basic:"Basic Sprinkler",
+Silver:"Silver Soakers",
+Golden:"Golden Gutter",
+Diamond:"Diamond Drenchers",
+Supreme:"Supreme Saturator"
+};
+
+const sprinkler=document.getElementById("sprinkler");
+const plan=document.getElementById("plan");
+
+function updatePlan(){
+ const type=sprinkler.value;
+ const count=counts[type];
+ document.getElementById("count").textContent=count;
+ plan.innerHTML="";
+
+ const positions={
+ 1:[12],
+ 2:[10,14],
+ 3:[7,12,17],
+ 4:[6,8,16,18]
+ };
+
+ const spots=positions[count]||positions[1];
+
+ for(let i=0;i<25;i++){
+  const cell=document.createElement("div");
+  cell.className="cell"+(spots.includes(i)?" selected":"");
+  cell.textContent=spots.includes(i)?"⛲":(i%2===0?"🌲":"🌿");
+  plan.appendChild(cell);
+ }
+
+ document.getElementById("guide").textContent=
+ names[type]+" seçildi. "+count+
+ " adetlik örnek yerleşim gösteriliyor.";
+}
+
+sprinkler.addEventListener("change",updatePlan);
+
+document.getElementById("field").addEventListener("change",e=>{
+ document.getElementById("title").textContent=e.target.value;
+});
+
+updatePlan();
+
+let remaining=1800;
+let timer=null;
+
+function draw(){
+ const m=Math.floor(remaining/60);
+ const s=remaining%60;
+ document.getElementById("clock").textContent=
+ String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+function start(){
+ if(timer)return;
+ timer=setInterval(()=>{
+  if(remaining>0){
+   remaining--;
+   draw();
+  }else{
+   pause();
+   alert("Süre tamamlandı!");
+  }
+ },1000);
+}
+
+function pause(){
+ clearInterval(timer);
+ timer=null;
+}
+
+function reset(){
+ pause();
+ remaining=Math.max(1,Number(document.getElementById("minutes").value)||1)*60+
+ Math.max(0,Math.min(59,Number(document.getElementById("seconds").value)||0));
+ draw();
+}
+
+draw();
+</script>
+</body>
+</html>
